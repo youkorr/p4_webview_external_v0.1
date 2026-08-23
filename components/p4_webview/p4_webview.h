@@ -10,17 +10,11 @@
 namespace esphome {
 namespace p4_webview {
 
-/*
- * Safe first milestone:
- * - owns no USB resources
- * - does not replace the display driver
- * - does not start a browser during boot
- * - provides a stable integration point for the future HTML engine.
- */
 class P4WebView : public Component {
  public:
   void set_url(const std::string &url) { this->url_ = url; }
   void set_kiosk(bool kiosk) { this->kiosk_ = kiosk; }
+  void set_rotation(uint16_t rotation) { this->rotation_ = rotation; }
 
   void set_display(display::DisplayBuffer *display) { this->display_ = display; }
 
@@ -36,6 +30,7 @@ class P4WebView : public Component {
  protected:
   std::string url_;
   bool kiosk_{true};
+  uint16_t rotation_{0};
   display::DisplayBuffer *display_{nullptr};
 
 #ifdef USE_TOUCHSCREEN
