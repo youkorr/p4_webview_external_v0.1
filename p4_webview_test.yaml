@@ -1,5 +1,7 @@
 substitutions:
   device_name: p4-webview-test
+  webview_server: "homeassistant:8081"
+  dashboard_url: "http://homeassistant:8123/lovelace/7"
 
 esphome:
   name: ${device_name}
@@ -13,6 +15,9 @@ esp32:
     type: esp-idf
     advanced:
       enable_idf_experimental_features: yes
+    sdkconfig_options:
+      CONFIG_SPIRAM_FETCH_INSTRUCTIONS: y
+      CONFIG_SPIRAM_RODATA: y
 
 logger:
   level: DEBUG
@@ -40,6 +45,7 @@ esp32_hosted:
   d2_pin: GPIO16
   d3_pin: GPIO17
   use_psram: true
+  sdio_frequency: 40000000
 
 esp_ldo:
   - channel: 3
@@ -48,35 +54,6 @@ esp_ldo:
 psram:
   mode: hex
   speed: 200MHz
-
-external_components:
-  - source:
-      type: local
-      path: components
-    components: [p4_webview]
-    refresh: 0s
-
-  - source: github://kvj/esphome@jd9365_gsl3680
-    refresh: 0s
-    components: [jd9365]
-
-  - source: github://jtenniswood/esphome-media-player@main
-    components: [gsl3680]
-    refresh: 0s
-
-globals:
-  - id: touch_x
-    type: int
-    restore_value: no
-    initial_value: '0'
-  - id: touch_y
-    type: int
-    restore_value: no
-    initial_value: '0'
-  - id: touch_active
-    type: bool
-    restore_value: no
-    initial_value: 'false'
 
 i2c:
   - id: i2c_bus
@@ -114,54 +91,46 @@ touchscreen:
       swap_xy: false
       mirror_x: true
       mirror_y: false
-    on_touch:
-      - lambda: |-
-          id(touch_x) = 1279 - touch.y;
-          id(touch_y) = touch.x;
-          id(touch_active) = true;
-      - light.turn_on: backlight
-    on_release:
-      - lambda: |-
-          id(touch_active) = false
 
 display:
   - platform: mipi_dsi
     model: JC8012P4A1
     id: main_screen
     pixel_mode: 16
-    update_interval: 50ms
-    auto_clear_enabled: true
-    rotation: 90
-    lambda: |-
-      const auto bg = Color(8, 12, 18);
-      const auto panel = Color(25, 35, 48);
-      const auto accent = Color(0, 180, 255);
-      const auto touch = Color(255, 80, 80);
-      const auto white = Color(245, 245, 245);
+    update_interval: never
+    auto_clear_enabled: false
 
-      it.fill(bg);
-      it.filled_rectangle(20, 20, it.get_width() - 40, 90, panel);
-      it.filled_rectangle(20, 130, it.get_width() - 40, 260, panel);
-      it.filled_rectangle(40, 160, it.get_width() - 80, 80, accent);
+# Real working ESPHome client: Chromium runs on the WebView server,
+# while the P4 decodes JPEG tiles locally, writes them to MIPI-DSI,
+# and forwards touchscreen events back to the browser.
+external_components:
+  - source: github://strange-v/RemoteWebViewClient@main
+    refresh: 0s
+    components: [remote_webview]
 
-      if (id(touch_active)) {
-        const int x = std::max(0, std::min((int) it.get_width() - 1, id(touch_x)));
-        const int y = std::max(0, std::min((int) it.get_height() - 1, id(touch_y)));
-        it.filled_circle(x, y, 24, touch);
-        it.filled_circle(x, y, 8, white);
-      }
+  - source: github://kvj/esphome@jd9365_gsl3680
+    refresh: 0s
+    components: [jd9365]
 
-p4_webview:
+  - source: github://jtenniswood/esphome-media-player@main
+    components: [gsl3680]
+    refresh: 0s
+
+remote_webview:
   id: web_test
-  host: "homeassistant"
-  port: 8123
-  width: 800
-  height: 1280
-  rotate: 90
-  touch_rotate: 90
-  url: "http://homeassistant:8123/lovelace/7"
-  token: !secret ha_long_lived_token
-  kiosk: true
-  stats: true
+  server: ${webview_server}
+  url: ${dashboard_url}
   display_id: main_screen
   touchscreen_id: my_touch
+  tile_size: 32
+  full_frame_tile_count: 1
+  full_frame_area_threshold: 0.50
+  full_frame_every: 50
+  every_nth_frame: 1
+  min_frame_interval: 80
+  jpeg_quality: 85
+  max_bytes_per_msg: 61440
+  big_endian: false
+  rotation: 90
+  on_frame_update:
+    - logger.log: "Home Assistant dashboard frame displayed on P4"
