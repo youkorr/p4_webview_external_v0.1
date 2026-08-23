@@ -64,6 +64,20 @@ external_components:
     components: [gsl3680]
     refresh: 0s
 
+globals:
+  - id: touch_x
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: touch_y
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: touch_active
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+
 i2c:
   - id: i2c_bus
     sda: GPIO7
@@ -101,15 +115,41 @@ touchscreen:
       mirror_x: true
       mirror_y: false
     on_touch:
+      - lambda: |-
+          id(touch_x) = 1279 - touch.y;
+          id(touch_y) = touch.x;
+          id(touch_active) = true;
       - light.turn_on: backlight
+    on_release:
+      - lambda: |-
+          id(touch_active) = false
 
 display:
   - platform: mipi_dsi
     model: JC8012P4A1
     id: main_screen
     pixel_mode: 16
-    update_interval: never
-    auto_clear_enabled: false
+    update_interval: 50ms
+    auto_clear_enabled: true
+    rotation: 90
+    lambda: |-
+      const auto bg = Color(8, 12, 18);
+      const auto panel = Color(25, 35, 48);
+      const auto accent = Color(0, 180, 255);
+      const auto touch = Color(255, 80, 80);
+      const auto white = Color(245, 245, 245);
+
+      it.fill(bg);
+      it.filled_rectangle(20, 20, it.get_width() - 40, 90, panel);
+      it.filled_rectangle(20, 130, it.get_width() - 40, 260, panel);
+      it.filled_rectangle(40, 160, it.get_width() - 80, 80, accent);
+
+      if (id(touch_active)) {
+        const int x = std::max(0, std::min((int) it.get_width() - 1, id(touch_x)));
+        const int y = std::max(0, std::min((int) it.get_height() - 1, id(touch_y)));
+        it.filled_circle(x, y, 24, touch);
+        it.filled_circle(x, y, 8, white);
+      }
 
 p4_webview:
   id: web_test
