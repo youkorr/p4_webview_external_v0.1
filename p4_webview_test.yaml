@@ -14,8 +14,9 @@ esp32:
   framework:
     type: esp-idf
     advanced:
-      enable_idf_experimental_features: yes
+      enable_idf_experimental_features: true
     sdkconfig_options:
+      COMPILER_OPTIMIZATION_SIZE: y
       CONFIG_SPIRAM_FETCH_INSTRUCTIONS: y
       CONFIG_SPIRAM_RODATA: y
     components:
@@ -80,7 +81,7 @@ light:
     output: backlight_output
     name: Backlight
     id: backlight
-    restore_mode: RESTORE_DEFAULT_ON
+    restore_mode: ALWAYS_ON
 
 touchscreen:
   - platform: gsl3680
@@ -105,8 +106,6 @@ display:
     update_interval: never
     auto_clear_enabled: false
 
-# Real RemoteWebView client. The P4 decodes the streamed JPEG tiles,
-# renders them locally to MIPI-DSI, and sends touchscreen events back.
 external_components:
   - source: github://strange-v/RemoteWebViewClient@main
     refresh: 0s
