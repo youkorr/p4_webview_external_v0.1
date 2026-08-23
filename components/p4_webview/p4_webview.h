@@ -1,7 +1,7 @@
 #pragma once
 
 #include "esphome/core/component.h"
-#include "esphome/components/display/display_buffer.h"
+#include "esphome/components/display/display.h"
 
 #ifdef USE_TOUCHSCREEN
 #include "esphome/components/touchscreen/touchscreen.h"
@@ -23,7 +23,7 @@ class P4WebView : public Component {
   void set_token(const std::string &token) { this->token_ = token; }
   void set_stats(bool stats) { this->stats_ = stats; }
 
-  void set_display(display::DisplayBuffer *display) { this->display_ = display; }
+  void set_display(display::Display *display) { this->display_ = display; }
 
 #ifdef USE_TOUCHSCREEN
   void set_touchscreen(touchscreen::Touchscreen *touch) { this->touchscreen_ = touch; }
@@ -45,7 +45,7 @@ class P4WebView : public Component {
   uint16_t touch_rotate_{0};
   bool kiosk_{true};
   bool stats_{true};
-  display::DisplayBuffer *display_{nullptr};
+  display::Display *display_{nullptr};
 
 #ifdef USE_TOUCHSCREEN
   touchscreen::Touchscreen *touchscreen_{nullptr};
