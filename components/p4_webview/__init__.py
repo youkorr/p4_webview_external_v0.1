@@ -1,6 +1,7 @@
 import esphome.config_validation as cv
 import esphome.codegen as cg
 from esphome.const import CONF_ID
+from esphome.components import display, touchscreen
 
 DEPENDENCIES = ["display"]
 
@@ -32,8 +33,8 @@ CONFIG_SCHEMA = cv.Schema({
     cv.Optional(CONF_KIOSK, default=True): cv.boolean,
     cv.Optional(CONF_TOKEN): cv.string,
     cv.Optional(CONF_STATS, default=True): cv.boolean,
-    cv.Required(CONF_DISPLAY_ID): cv.use_id(cg.esphome_ns.class_("DisplayBuffer")),
-    cv.Optional(CONF_TOUCHSCREEN_ID): cv.use_id(cg.esphome_ns.class_("Touchscreen")),
+    cv.Required(CONF_DISPLAY_ID): cv.use_id(display.Display),
+    cv.Optional(CONF_TOUCHSCREEN_ID): cv.use_id(touchscreen.Touchscreen),
 }).extend(cv.COMPONENT_SCHEMA)
 
 async def to_code(config):
@@ -53,9 +54,9 @@ async def to_code(config):
     if CONF_TOKEN in config:
         cg.add(var.set_token(config[CONF_TOKEN]))
 
-    display = await cg.get_variable(config[CONF_DISPLAY_ID])
-    cg.add(var.set_display(display))
+    display_var = await cg.get_variable(config[CONF_DISPLAY_ID])
+    cg.add(var.set_display(display_var))
 
     if CONF_TOUCHSCREEN_ID in config:
-        touch = await cg.get_variable(config[CONF_TOUCHSCREEN_ID])
-        cg.add(var.set_touchscreen(touch))
+        touch_var = await cg.get_variable(config[CONF_TOUCHSCREEN_ID])
+        cg.add(var.set_touchscreen(touch_var))
