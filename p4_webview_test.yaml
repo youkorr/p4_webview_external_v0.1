@@ -117,5 +117,6 @@ p4_webview:
   id: web_test
   url: "http://example.com/"
   kiosk: true
-  # display_id: main_display
-  # touchscreen_id: my_touch
+  display_id: main_screen
+  touchscreen_id: my_touch
+  rotation: 0
