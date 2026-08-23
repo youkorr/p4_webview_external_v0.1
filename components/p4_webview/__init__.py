@@ -1,0 +1,35 @@
+import esphome.config_validation as cv
+import esphome.codegen as cg
+from esphome.const import CONF_ID
+
+DEPENDENCIES = ["display"]
+
+p4_webview_ns = cg.esphome_ns.namespace("p4_webview")
+P4WebView = p4_webview_ns.class_("P4WebView", cg.Component)
+
+CONF_URL = "url"
+CONF_DISPLAY_ID = "display_id"
+CONF_TOUCHSCREEN_ID = "touchscreen_id"
+CONF_KIOSK = "kiosk"
+
+CONFIG_SCHEMA = cv.Schema({
+    cv.GenerateID(): cv.declare_id(P4WebView),
+    cv.Required(CONF_URL): cv.string,
+    cv.Required(CONF_DISPLAY_ID): cv.use_id(cg.esphome_ns.class_("DisplayBuffer")),
+    cv.Optional(CONF_TOUCHSCREEN_ID): cv.use_id(cg.esphome_ns.class_("Touchscreen")),
+    cv.Optional(CONF_KIOSK, default=True): cv.boolean,
+}).extend(cv.COMPONENT_SCHEMA)
+
+async def to_code(config):
+    var = cg.new_Pvariable(config[CONF_ID])
+    await cg.register_component(var, config)
+
+    cg.add(var.set_url(config[CONF_URL]))
+    cg.add(var.set_kiosk(config[CONF_KIOSK]))
+
+    display = await cg.get_variable(config[CONF_DISPLAY_ID])
+    cg.add(var.set_display(display))
+
+    if CONF_TOUCHSCREEN_ID in config:
+        touch = await cg.get_variable(config[CONF_TOUCHSCREEN_ID])
+        cg.add(var.set_touchscreen(touch))
