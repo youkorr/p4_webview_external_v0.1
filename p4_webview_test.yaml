@@ -13,6 +13,7 @@ esp32:
     type: esp-idf
     advanced:
       enable_idf_experimental_features: yes
+
 logger:
   level: DEBUG
 
@@ -24,8 +25,9 @@ ota:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
+
 captive_portal:
-  
+
 esp32_hosted:
   variant: ESP32C6
   active_high: true
@@ -36,13 +38,13 @@ esp32_hosted:
   d0_pin: GPIO14
   d1_pin: GPIO15
   d2_pin: GPIO16
-  d3_pin: GPIO17 
+  d3_pin: GPIO17
   use_psram: true
 
 esp_ldo:
   - channel: 3
     voltage: 2.5V
-    
+
 psram:
   mode: hex
   speed: 200MHz
@@ -58,9 +60,8 @@ external_components:
     refresh: 0s
     components: [jd9365]
 
-
   - source: github://jtenniswood/esphome-media-player@main
-    components: [ gsl3680 ]
+    components: [gsl3680]
     refresh: 0s
 
 i2c:
@@ -69,23 +70,22 @@ i2c:
     scl: GPIO8
     scan: true
     frequency: 400kHz
-    
+
 output:
-  # Backlight LED
   - platform: ledc
     pin: GPIO23
-    id: GPIO23
+    id: backlight_output
     frequency: 100Hz
     min_power: 0.03
     zero_means_zero: true
 
 light:
   - platform: monochromatic
-    output: GPIO23
+    output: backlight_output
     name: Backlight
     id: backlight
     restore_mode: RESTORE_DEFAULT_ON
-    
+
 touchscreen:
   - platform: gsl3680
     id: my_touch
@@ -99,11 +99,10 @@ touchscreen:
     transform:
       swap_xy: false
       mirror_x: true
-      mirror_y: false 
+      mirror_y: false
     on_touch:
       - light.turn_on: backlight
 
-    
 display:
   - platform: mipi_dsi
     model: JC8012P4A1
@@ -112,11 +111,17 @@ display:
     update_interval: never
     auto_clear_enabled: false
 
-    
 p4_webview:
   id: web_test
-  url: "http://example.com/"
+  host: "homeassistant"
+  port: 8123
+  width: 800
+  height: 1280
+  rotate: 90
+  touch_rotate: 90
+  url: "http://homeassistant:8123/lovelace/7"
+  token: !secret ha_long_lived_token
   kiosk: true
+  stats: true
   display_id: main_screen
   touchscreen_id: my_touch
-  rotation: 0
