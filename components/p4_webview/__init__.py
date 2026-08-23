@@ -11,6 +11,7 @@ CONF_URL = "url"
 CONF_DISPLAY_ID = "display_id"
 CONF_TOUCHSCREEN_ID = "touchscreen_id"
 CONF_KIOSK = "kiosk"
+CONF_ROTATION = "rotation"
 
 CONFIG_SCHEMA = cv.Schema({
     cv.GenerateID(): cv.declare_id(P4WebView),
@@ -18,6 +19,7 @@ CONFIG_SCHEMA = cv.Schema({
     cv.Required(CONF_DISPLAY_ID): cv.use_id(cg.esphome_ns.class_("DisplayBuffer")),
     cv.Optional(CONF_TOUCHSCREEN_ID): cv.use_id(cg.esphome_ns.class_("Touchscreen")),
     cv.Optional(CONF_KIOSK, default=True): cv.boolean,
+    cv.Optional(CONF_ROTATION, default=0): cv.one_of(0, 90, 180, 270, int=True),
 }).extend(cv.COMPONENT_SCHEMA)
 
 async def to_code(config):
@@ -26,6 +28,7 @@ async def to_code(config):
 
     cg.add(var.set_url(config[CONF_URL]))
     cg.add(var.set_kiosk(config[CONF_KIOSK]))
+    cg.add(var.set_rotation(config[CONF_ROTATION]))
 
     display = await cg.get_variable(config[CONF_DISPLAY_ID])
     cg.add(var.set_display(display))
