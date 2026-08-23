@@ -18,6 +18,11 @@ esp32:
     sdkconfig_options:
       CONFIG_SPIRAM_FETCH_INSTRUCTIONS: y
       CONFIG_SPIRAM_RODATA: y
+    components:
+      - name: "espressif/esp_websocket_client"
+        ref: 1.5.0
+      - name: "bitbank2/jpegdec"
+        source: https://github.com/strange-v/jpegdec-esphome
 
 logger:
   level: DEBUG
@@ -100,9 +105,8 @@ display:
     update_interval: never
     auto_clear_enabled: false
 
-# Real working ESPHome client: Chromium runs on the WebView server,
-# while the P4 decodes JPEG tiles locally, writes them to MIPI-DSI,
-# and forwards touchscreen events back to the browser.
+# Real RemoteWebView client. The P4 decodes the streamed JPEG tiles,
+# renders them locally to MIPI-DSI, and sends touchscreen events back.
 external_components:
   - source: github://strange-v/RemoteWebViewClient@main
     refresh: 0s
@@ -113,8 +117,8 @@ external_components:
     components: [jd9365]
 
   - source: github://jtenniswood/esphome-media-player@main
-    components: [gsl3680]
     refresh: 0s
+    components: [gsl3680]
 
 remote_webview:
   id: web_test
